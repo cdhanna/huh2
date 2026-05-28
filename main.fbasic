@@ -1,0 +1,197 @@
+set render size 1920, 1080
+set background color rgb(39, 52, 74)
+
+texture 1, "Surgeonfish"
+texture 2, "Rusty_Can"
+
+effect 1, "ScreenEffect"
+set screen effect 1
+set effect param float 1, "TimeSpeed", 5
+
+
+load sfx clip 1, "underwater-ambiencewav"
+sfx 1, 1
+set sfx loop 1, 1
+play sfx 1
+
+load sfx clip 2 "bubble-pop-4"
+sfx 2, 2
+
+
+sprite 1, 100, 200, 1
+color sprite 1, rgb(255, 255, 255)
+size sprite 1, 200, 200
+order sprite 1, 1
+
+x = 180
+y = 100
+speed = 8
+
+boxLength = 50
+DIM backgroundBoxes(boxLength)as box
+for n = 0 to boxLength - 1
+    b = backgroundBoxes(n) 
+    id = reserve sprite id(b.spriteId)
+    b.pos.x = rnd(render width())
+    b.pos.y = rnd(render height())
+    b.size.x = 10 + rnd(40)
+    if b.size.x > 30
+        b.size.y - = 5
+        order sprite id, 2
+    endif
+    b.vel.x = - 1 * b.size.x * .01 * b.size.x
+    b.size.y = 10
+    sprite id, b.pos.x, b.pos.y, 0
+    color sprite id, rgb(32 + rnd(64), 128 + rnd(32), 128)
+    size sprite id, b.size.x, b.size.y
+    
+    backgroundBoxes(n)= b
+next
+
+enemyLength = 15
+DIM enemies(enemyLength) as enemy
+for n = 0 to enemyLength -1
+    e = enemies(n)
+    e.transformId = n + 1
+    e.colliderId = n + 1
+    e.b.spriteId = n + 2 + boxLength
+    width = 100
+    height = 100
+
+    ex = render width() + 100 + n * 800
+    ey = 100 + rnd((render height()-100) / 200) * 200
+
+    transform e.transformId, ex, ey
+    box collider e.colliderId, 0, 0, width, height
+    attach collider to transform e.colliderId, e.transformId
+    sprite e.b.spriteId, 0, 0, 2
+    attach sprite to transform e.b.spriteId, e.transformId
+    size sprite e.b.spriteId, 100, 100
+    enemies(n) = e
+next
+
+
+width = render width()- 100
+height = render height()- 100
+
+t# = 0
+do
+
+    t# = t# + .01
+    set effect param float 1, "Time", t#
+
+    sprite 1, x, y, 1
+
+    if x > width then x = width
+    if y > height then y = height
+    if x < 100 
+        x = 100
+        set sfx pitch 2, rnd(10)/ 10.0
+        play sfx 2
+    endif
+    if y < 100 
+        y = 100
+        play sfx 2
+    endif
+
+    if x > render width()/ 2
+        print "over to the right"
+    endif
+
+    if downkey()
+        y = y + speed
+    endif
+    if upkey()
+        y = y - speed
+    endif
+    if leftkey()
+        x = x - speed
+    endif
+    if rightKey()
+        x = x + speed
+
+    endif
+
+    for n = 0 to boxLength - 1
+        b = backgroundBoxes(n)
+
+        b.pos.x + = b.vel.x
+        b.pos.y + = b.vel.y
+
+        if(b.pos.x < - 100)
+            b.pos.x = render width()+ 100
+        endif
+
+        position sprite b.spriteId, b.pos.x, b.pos.y 
+
+        backgroundBoxes(n)= b
+    next
+
+    for n = 0 to enemyLength -1
+        e = enemies(n)
+
+        ex = get local transform x(e.transformId)
+        ey = get local transform y(e.transformId)
+        if (ex < -100)
+            ex = render width() + 100 + rnd(4) * 200
+              ey = 100 + rnd((render height()-100) / 200) * 200
+
+        endif
+        set transform position e.transformId, ex - 4, ey
+
+        enemies(n) = e
+    next
+
+
+    sync
+
+    _L1:
+loop
+
+test sample
+
+    startTime = timer()
+    endTime = startTime + 3 * 1000
+    
+    while timer()< endTime
+        RUNTO _L1
+    endwhile
+    assert x > render width() / 2
+
+    `assert x = 0
+endtest
+
+
+test sample2
+
+    startTime = timer()
+    endTime = startTime + 3 * 1000
+    
+    while timer()< endTime
+        RUNTO _L1
+    endwhile
+    assert x > 200
+
+    `assert x = 0
+endtest
+
+` TODO: resizing the window should adjust the letter-boxing
+` TODO: auto complete is appearing on comment string
+` TODO: these types should live in another file, but they aren't working. 
+type box
+spriteId
+pos as vec
+vel as vec
+size as vec
+endtype
+
+type vec
+x
+y
+endtype
+
+type enemy 
+    b as box
+    transformId 
+    colliderId
+endtype
