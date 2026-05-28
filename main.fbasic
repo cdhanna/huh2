@@ -9,7 +9,7 @@ set screen effect 1
 
 print "test1"
 
-set effect param float 1, "TimeSpeed", 7
+set effect param float 1, "TimeSpeed", 12
 load sfx clip 1, "underwater-ambiencewav"
 sfx 1, 1
 set sfx loop 1, 1
