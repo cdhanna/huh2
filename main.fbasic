@@ -7,7 +7,7 @@ texture 2, "Rusty_Can"
 effect 1, "ScreenEffect"
 set screen effect 1
 
-print "test 6"
+print "test 9"
 
 set effect param float 1, "TimeSpeed", 9
 load sfx clip 1, "underwater-ambiencewav"
